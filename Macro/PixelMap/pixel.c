@@ -962,26 +962,34 @@ uint16_t Pixel_fillPixelLookup(
 
 // -- Pixel Tweening --
 
-uint16_t Pixel_pixelTweenNextPos( PixelElement *elem )
+uint16_t Pixel_pixelTweenNextPos( PixelElement *elem, PixelElement *prev )
 {
 	// No elem found
 	// XXX (HaaTa) This is actually a hard problem for relative animations
 	//             We may not find any element initially, so we don't know anothing to increment the position
 	//             The best solution may be to just find a relatively nearby pixel and use that info...
 	//             Or waste enough more flash...
+
 	uint16_t ret = 0;
-	//if ( elem == 0 )
+
+	// First try the next element
+	if ( elem != 0 )
 	{
-		// TODO - This is BAD, will break in the future
-		ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
-	}
-	/* XXX (HaaTa) - There's another bug somewhere with this... (negative and overmax percentages column-fill)
-	else
-	{
-		// Calculate next position (this is dynamic, cannot be pre-calculated)
 		ret = ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
+		return ret;
 	}
-	*/
+
+	// Next try the previous element
+	if ( prev != 0 )
+	{
+		ret = ( ( prev->width / 8 + sizeof( PixelChange ) ) * prev->channels ) + sizeof( PixelModElement );
+		return ret;
+	}
+
+	// BAD BAD BAD
+	// TODO - This is BAD, will break in most cases, except for K-Type like keyboards.
+	erro_print("Pixel Tween Bug!");
+	ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
 
 	return ret;
 }
@@ -997,8 +1005,12 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 		// Lookup type of pixel, choose fill algorith and query all sub-pixels
 		uint16_t next = 0;
 		uint16_t valid = 0;
+		PixelElement *prev_elem = 0;
 		PixelElement *elem = 0;
 		do {
+			// Last element
+			prev_elem = elem;
+
 			// Lookup pixel, and check if there are any more pixels left
 			next = Pixel_fillPixelLookup( mod, &elem, next, stack_elem, &valid );
 
@@ -1007,7 +1019,7 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 		} while ( next );
 
 		// Determine next position
-		pos += Pixel_pixelTweenNextPos( elem );
+		pos += Pixel_pixelTweenNextPos( elem, prev_elem );
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];
@@ -1201,7 +1213,7 @@ next:
 		prev = mod;
 
 		// Determine next position
-		pos += Pixel_pixelTweenNextPos( elem );
+		pos += Pixel_pixelTweenNextPos( elem, prev_elem );
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];
