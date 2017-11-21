@@ -25,8 +25,9 @@ S0x3 : U"PrintScreen";
 S0x2 : U"ScrollLock";
 S0x1 : U"Pause";
 
-S0x22 : U"Backtick"
-S0x21 : U"1";
+S0x22 : U"Backtick";
+S0x10 : U"1";
+#error corrected on... firmware? well, jumpered.
 S0x20 : U"2";
 S0x1F : U"3";
 S0x1E : U"4";
@@ -107,3 +108,8 @@ S0x56 : U"Right";
 ###36 35 34
 ###47 up 45
 ###le do ri
+S0x36 : U"P/";
+S0x35 : U"P*";
+S0x34 : U"P-";
+#S0x47 : CONS"SCANPREVIOUSTRACK";
+#S0x45 : CONS"SCANNEXTTRACK";
